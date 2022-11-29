@@ -11,7 +11,7 @@ const FavsProvider = ({ children }) => {
 		async function iniciaFavoritos() {
 			const filmesId = window.localStorage.getItem('@favsId');
 
-			if (filmesId !== null) {
+			if (filmesId !== null && filmesId !== undefined) {
 				const ids = filmesId.slice('+');
 
 				ids.forEach(async (id) => {
