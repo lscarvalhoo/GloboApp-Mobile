@@ -19,11 +19,7 @@ const MyList = () => {
 	function abriHighlights(filmeId) {
 		const filme = favoritos.find((f) => f.id === filmeId);
 
-		if (filme.release_date === undefined) {
-			navigation.navigate('Highlights', { filme: filme, tipo: 'Series' });
-		} else {
-			navigation.navigate('Highlights', { filme: filme, tipo: 'Filmes' });
-		}
+		navigation.navigate('Highlights', { filme: filme });
 	}
 
 	if (favoritos.length > 0) {
@@ -34,10 +30,9 @@ const MyList = () => {
 					<ScrollView style={styles.filmeContainer}>
 						{favoritos.map((filme) => {
 							return (
-								<TouchableOpacity
-									key={filme.id}
-									onPress={() => abriHighlights(filme.id)}>
+								<TouchableOpacity onPress={() => abriHighlights(filme.id)}>
 									<ImageBackground
+										id={filme.id}
 										style={styles.imagemFilme}
 										resizeMode={'contain'}
 										source={{
