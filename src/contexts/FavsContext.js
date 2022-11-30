@@ -25,7 +25,6 @@ const FavsProvider = ({ children }) => {
 	}
 
 	async function adicionaFilmeFavorito(filme) {
-		//TODO : verifica filme esta ou não esta
 		const favs = await AsyncStorage.getItem('@favs');
 
 		const filmesVerificado = verificaFilme(favs.id);

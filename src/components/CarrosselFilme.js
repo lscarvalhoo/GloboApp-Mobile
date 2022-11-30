@@ -18,7 +18,7 @@ export const CarrosselFilmes = ({ tipoLista }) => {
 	function abriHighlights(filmeId) {
 		const filme = filmes.find((f) => f.id === filmeId);
 
-		navigation.navigate('Highlights', { filme: filme });
+		navigation.navigate('Highlights', { filme: filme, tipo: tipoLista });
 	}
 
 	React.useEffect(() => {
@@ -56,9 +56,10 @@ export const CarrosselFilmes = ({ tipoLista }) => {
 					{filmes &&
 						filmes.map((filme) => {
 							return (
-								<TouchableOpacity onPress={() => abriHighlights(filme.id)}>
+								<TouchableOpacity
+									key={filme.id}
+									onPress={() => abriHighlights(filme.id)}>
 									<ImageBackground
-										id={filme.id}
 										style={styles.imagemFilme}
 										source={{
 											uri: `https://image.tmdb.org/t/p/original${filme.poster_path}`,

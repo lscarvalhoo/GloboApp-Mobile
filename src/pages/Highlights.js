@@ -15,26 +15,93 @@ import { api } from '../../API/tmdbApi';
 const Highlights = () => {
 	const navigation = useNavigation();
 	const route = useRoute();
-	const [detalhes, setDetalhes] = React.useState(false);
+	const [detalhes, setDetalhes] = React.useState(true);
 	const [ehFavorito, setEhFavorito] = React.useState(false);
-	const [adicionado, setadicionado] = React.useState(false);
-	const [filmesRelacionados, setFilmesFavoritos] = React.useState();
+	const [filmesRelacionados, setFilmesRelacionados] = React.useState();
+	const [generosFilme, setGeneros] = React.useState();
 	const { adicionaFilmeFavorito, removeFilmeFavorito, verificaFilme } =
 		React.useContext(FavsContext);
 
-	// React.useEffect(() => {
-	// 	const verificacao = verificaFilme(route.params.filme.id);
-	// 	setEhFavorito(verificacao);
-	// }, []);
+	React.useEffect(() => {
+		async function preencheDados() {
+			await buscaGeneroFilme();
+			const verificacao = await verificaFilme(route.params.filme.id);
+
+			if (verificacao !== undefined) {
+				setEhFavorito(true);
+			} else {
+				setEhFavorito(false);
+			}
+		}
+
+		preencheDados();
+	}, [route.params.filme]);
 
 	function voltaPagina() {
 		navigation.goBack();
 	}
 
 	async function carregarAssistaTambem() {
-		const response = await api.get(`movie/latest`);
-		setFilmesFavoritos(response.data);
+		if (route.params.tipo === 'Series') {
+			const response = await api.get('tv/popular', {
+				params: {
+					page: 1,
+				},
+			});
+			setFilmesRelacionados(response.data.results.slice(0, 15));
+		} else {
+			const response = await api.get('movie/now_playing', {
+				params: {
+					page: 1,
+				},
+			});
+			setFilmesRelacionados(response.data.results.slice(0, 10));
+		}
+
 		setDetalhes(false);
+	}
+
+	async function adicionaFavorito(filme) {
+		await adicionaFilmeFavorito(filme);
+		setEhFavorito(true);
+	}
+
+	async function removeFavorito(filme) {
+		await removeFilmeFavorito(filme);
+		setEhFavorito(false);
+	}
+
+	function abriHighlights(filmeId) {
+		const filme = filmesRelacionados.find((f) => f.id === filmeId);
+
+		navigation.navigate('Highlights', { filme: filme, tipo: route.params.tipo });
+	}
+
+	async function buscaGeneroFilme() {
+		if (route.params.tipo === 'Series') {
+			const generos = await api.get('genre/tv/list');
+
+			let listaGeneros = '';
+			route.params.filme.genre_ids.forEach((genero) => {
+				const aux = generos.data.genres.filter((g) => {
+					return g.id === genero;
+				});
+
+				listaGeneros += `${aux[0].name}, `;
+				setGeneros(listaGeneros);
+			});
+		} else {
+			const generos = await api.get('genre/movie/list');
+			let listaGeneros = '';
+			route.params.filme.genre_ids.forEach((genero) => {
+				const aux = generos.data.genres.filter((g) => {
+					return g.id === genero;
+				});
+
+				listaGeneros += `${aux[0].name}, `;
+				setGeneros(listaGeneros);
+			});
+		}
 	}
 
 	return (
@@ -64,7 +131,9 @@ const Highlights = () => {
 						source={{
 							uri: `https://image.tmdb.org/t/p/original${route.params.filme.poster_path}`,
 						}}></ImageBackground>
-					<Text style={styles.titulo}>{route.params.filme.title}</Text>
+					<Text style={styles.titulo}>
+						{route.params.tipo === 'Series' ? route.params.filme.name : route.params.filme.title}
+					</Text>
 					<Text style={styles.subtitulo}>{route.params.filme.overview}</Text>
 					<View style={styles.divButtons}>
 						<TouchableOpacity style={styles.buttonAssista}>
@@ -75,9 +144,9 @@ const Highlights = () => {
 							/>
 							<Text style={styles.textButton}>Assistir</Text>
 						</TouchableOpacity>
-						{ehFavorito ? (
+						{!ehFavorito ? (
 							<TouchableOpacity
-								onPress={() => adicionaFilmeFavorito(route.params.filme)}
+								onPress={() => adicionaFavorito(route.params.filme)}
 								style={styles.buttonAddLista}>
 								<Ionicons
 									name="add-circle-outline"
@@ -88,7 +157,7 @@ const Highlights = () => {
 							</TouchableOpacity>
 						) : (
 							<TouchableOpacity
-								onPress={() => removeFilmeFavorito(route.params.filme)}
+								onPress={() => removeFavorito(route.params.filme)}
 								style={styles.buttonAddLista}>
 								<FontAwesome
 									name="remove"
@@ -131,7 +200,44 @@ const Highlights = () => {
 					</View>
 				</View>
 			</ImageBackground>
-			<View>{filmesRelacionados ? <View></View> : <View></View>}</View>
+			{!detalhes ? (
+				<View>
+					{filmesRelacionados !== undefined ? (
+						<View style={styles.filmesRelacionados}>
+							{filmesRelacionados.map((filme) => {
+								return (
+									<TouchableOpacity
+										key={filme.id}
+										onPress={() => abriHighlights(filme.id)}>
+										<ImageBackground
+											style={styles.imagemFilme}
+											source={{
+												uri: `https://image.tmdb.org/t/p/original${filme.poster_path}`,
+											}}></ImageBackground>
+									</TouchableOpacity>
+								);
+							})}
+						</View>
+					) : (
+						<View></View>
+					)}
+				</View>
+			) : (
+				<View>
+					<Text style={styles.tituloDetalhes}>Ficha técnica</Text>
+					<Text style={styles.caracteristicas}>
+						Titulo:{' '}
+						{route.params.tipo === 'Series' ? route.params.filme.name : route.params.filme.title}
+					</Text>
+					<Text style={styles.caracteristicas}>
+						Ano de lançamento:{' '}
+						{route.params.tipo === 'Series'
+							? route.params.filme.first_air_date.slice(0, 4)
+							: route.params.filme.release_date.slice(0, 4)}
+					</Text>
+					<Text style={styles.caracteristicas}>Generos: {generosFilme}</Text>
+				</View>
+			)}
 		</ScrollView>
 	);
 };
@@ -214,6 +320,32 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-end',
+	},
+	filmesRelacionados: {
+		flex: 1,
+		width: '100%',
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+	},
+	imagemFilme: {
+		width: 120,
+		height: 150,
+		margin: 4,
+	},
+	tituloDetalhes: {
+		marginLeft: 10,
+		padding: 10,
+		fontSize: 20,
+		color: 'white',
+		fontWeight: 'bold',
+	},
+	caracteristicas: {
+		padding: 6,
+		marginLeft: 20,
+		fontSize: 16,
+		color: 'white',
+		fontWeight: '600',
 	},
 });
 
