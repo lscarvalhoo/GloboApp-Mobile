@@ -25,16 +25,12 @@ const FavsProvider = ({ children }) => {
 	}
 
 	async function adicionaFilmeFavorito(filme) {
-		const favs = await AsyncStorage.getItem('@favs');
-
-		const filmesVerificado = verificaFilme(favs.id);
-
 		if (!filme) return;
-		else if (!filmesVerificado) {
-			favoritos.push(filme);
-			setFavoritos(favoritos);
-			await AsyncStorage.setItem('@favs', JSON.stringify(favoritos));
-		}
+		else favoritos.push(filme);
+
+		setFavoritos(favoritos);
+
+		await AsyncStorage.setItem('@favs', JSON.stringify(favoritos));
 	}
 
 	async function removeFilmeFavorito(filme) {
