@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
-import { api } from '../../API/tmdbApi';
 
 export const FavsContext = React.createContext({});
 
@@ -21,13 +20,21 @@ const FavsProvider = ({ children }) => {
 		iniciaFavoritos();
 	}, []);
 
+	async function verificaFilme(filmeId) {
+		return favoritos.find((f) => f.id === filmeId);
+	}
+
 	async function adicionaFilmeFavorito(filme) {
+		const favs = await AsyncStorage.getItem('@favs');
+
+		const filmesVerificado = verificaFilme(favs.id);
+
 		if (!filme) return;
-		else favoritos.push(filme);
-
-		setFavoritos(favoritos);
-
-		await AsyncStorage.setItem('@favs', JSON.stringify(favoritos));
+		else if (!filmesVerificado) {
+			favoritos.push(filme);
+			setFavoritos(favoritos);
+			await AsyncStorage.setItem('@favs', JSON.stringify(favoritos));
+		}
 	}
 
 	async function removeFilmeFavorito(filme) {
@@ -48,6 +55,7 @@ const FavsProvider = ({ children }) => {
 				favoritos,
 				loading,
 				setLoading,
+				verificaFilme,
 			}}>
 			{children}
 		</FavsContext.Provider>
