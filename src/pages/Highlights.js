@@ -8,31 +8,33 @@ import {
 	ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, FontAwesome } from '@expo/vector-icons';
+import { FavsContext } from '../contexts/FavsContext';
 import { api } from '../../API/tmdbApi';
-
-let detalhesAtivo = false;
 
 const Highlights = () => {
 	const navigation = useNavigation();
 	const route = useRoute();
 	const [detalhes, setDetalhes] = React.useState(false);
-	let indicacoes;
+	const [ehFavorito, setEhFavorito] = React.useState(false);
+	const [adicionado, setadicionado] = React.useState(false);
+	const [filmesRelacionados, setFilmesFavoritos] = React.useState();
+	const { adicionaFilmeFavorito, removeFilmeFavorito, verificaFilme } =
+		React.useContext(FavsContext);
 
-	async function buscaIndicacoes() {
-		recomendados = await api.get(`movie/${route.params.filme.id}/similar`);
-
-		console.log(recomendados);
-
-		indicacoes = await recomendados.data;
-	}
-
-	function abriHighlights(filme) {
-		navigation.navigate('Highlights', { filme: filme });
-	}
+	// React.useEffect(() => {
+	// 	const verificacao = verificaFilme(route.params.filme.id);
+	// 	setEhFavorito(verificacao);
+	// }, []);
 
 	function voltaPagina() {
 		navigation.goBack();
+	}
+
+	async function carregarAssistaTambem() {
+		const response = await api.get(`movie/latest`);
+		setFilmesFavoritos(response.data);
+		setDetalhes(false);
 	}
 
 	return (
@@ -73,44 +75,63 @@ const Highlights = () => {
 							/>
 							<Text style={styles.textButton}>Assistir</Text>
 						</TouchableOpacity>
-						<TouchableOpacity style={styles.buttonAddLista}>
-							<Ionicons
-								name="add-circle-outline"
-								size={24}
-								color="white"
-							/>
-							<Text style={styles.textButton}>Minha Lista</Text>
-						</TouchableOpacity>
+						{ehFavorito ? (
+							<TouchableOpacity
+								onPress={() => adicionaFilmeFavorito(route.params.filme)}
+								style={styles.buttonAddLista}>
+								<Ionicons
+									name="add-circle-outline"
+									size={24}
+									color="white"
+								/>
+								<Text style={styles.textButton}>Minha Lista</Text>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								onPress={() => removeFilmeFavorito(route.params.filme)}
+								style={styles.buttonAddLista}>
+								<FontAwesome
+									name="remove"
+									size={24}
+									color="white"
+								/>
+								<Text style={styles.textButton}>Remover</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 					<View style={styles.verMais}>
-						<TouchableOpacity onPress={() => setDetalhes(false)}>
-							<Text style={styles.textoVerMais}>ASSISTA TAMBÉM</Text>
+						<TouchableOpacity onPress={() => carregarAssistaTambem()}>
+							<Text
+								style={{
+									marginRight: 50,
+									marginBottom: 10,
+									fontSize: 18,
+									fontWeight: '600',
+									color: detalhes ? '#cecece' : '#fff',
+									borderBottomColor: !detalhes ? 'white' : 'black',
+									borderBottomWidth: !detalhes ? 2 : 0,
+								}}>
+								ASSISTA TAMBÉM
+							</Text>
 						</TouchableOpacity>
 						<TouchableOpacity onPress={() => setDetalhes(true)}>
-							<Text style={styles.textoDetalhes}>DETALHES</Text>
+							<Text
+								style={{
+									marginRight: 50,
+									marginBottom: 10,
+									fontSize: 18,
+									fontWeight: '600',
+									color: !detalhes ? '#cecece' : '#fff',
+									borderBottomColor: detalhes ? 'white' : 'black',
+									borderBottomWidth: detalhes ? 2 : 0,
+								}}>
+								DETALHES
+							</Text>
 						</TouchableOpacity>
 					</View>
 				</View>
 			</ImageBackground>
-			{detalhes ? (
-				<View></View>
-			) : (
-				<View>
-					{indicacoes &&
-						indicacoes.map((filme) => {
-							return (
-								<TouchableOpacity onPress={() => abriHighlights(filme)}>
-									<ImageBackground
-										id={filme.id}
-										style={styles.imagemFilme}
-										source={{
-											uri: `https://image.tmdb.org/t/p/original${filme.poster_path}`,
-										}}></ImageBackground>
-								</TouchableOpacity>
-							);
-						})}
-				</View>
-			)}
+			<View>{filmesRelacionados ? <View></View> : <View></View>}</View>
 		</ScrollView>
 	);
 };
@@ -193,20 +214,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-end',
-	},
-	textoVerMais: {
-		marginRight: 50,
-		marginBottom: 10,
-		fontSize: 18,
-		fontWeight: '600',
-		color: detalhesAtivo ? '#dcdcdc' : '#fff',
-	},
-	textoDetalhes: {
-		marginRight: 50,
-		marginBottom: 10,
-		fontSize: 18,
-		fontWeight: '600',
-		color: detalhesAtivo ? '#fff' : '#dcdcdc',
 	},
 });
 

@@ -16,12 +16,13 @@ const Footer = () => {
 
 	return (
 		<View style={styles.container}>
-			<TouchableOpacity style={styles.button}>
+			<TouchableOpacity
+				onPress={abriHome}
+				style={styles.button}>
 				<Entypo
 					name="home"
 					size={25}
 					color="white"
-					onPress={abriHome}
 				/>
 				<Text style={styles.textoButton}>Inicio</Text>
 			</TouchableOpacity>
