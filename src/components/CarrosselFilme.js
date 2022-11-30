@@ -1,18 +1,45 @@
-import React, { useState } from 'react';
-import { View, Image, Text, StyleSheet, ScrollView, ImageBackground } from 'react-native';
+import React from 'react';
+import { useNavigation } from '@react-navigation/native';
+import {
+	View,
+	Image,
+	Text,
+	StyleSheet,
+	ScrollView,
+	ImageBackground,
+	TouchableOpacity,
+} from 'react-native';
 import { api } from '../../API/tmdbApi';
 
 export const CarrosselFilmes = ({ tipoLista }) => {
 	const [filmes, setFilmes] = React.useState();
+	const navigation = useNavigation();
+
+	function abriHighlights(filmeId) {
+		const filme = filmes.find((f) => f.id === filmeId);
+
+		navigation.navigate('Highlights', { filme: filme });
+	}
 
 	React.useEffect(() => {
 		async function carregaFilmes() {
-			const response = await api.get('movie/now_playing', {
-				params: {
-					page: 1,
-				},
-			});
-			setFilmes(response.data.results.slice(0, 10));
+			if (tipoLista === 'Series') {
+				const response = await api.get('tv/popular', {
+					params: {
+						page: 1,
+					},
+				});
+
+				setFilmes(response.data.results.slice(0, 10));
+			} else if (tipoLista === 'Filmes') {
+				const response = await api.get('movie/now_playing', {
+					params: {
+						page: 1,
+					},
+				});
+
+				setFilmes(response.data.results.slice(0, 10));
+			}
 		}
 
 		carregaFilmes();
@@ -29,12 +56,14 @@ export const CarrosselFilmes = ({ tipoLista }) => {
 					{filmes &&
 						filmes.map((filme) => {
 							return (
-								<ImageBackground
-									id={filme.id}
-									style={styles.imagemFilme}
-									source={{ uri: `https://image.tmdb.org/t/p/original${filme.poster_path}` }}>
-									<Image />
-								</ImageBackground>
+								<TouchableOpacity onPress={() => abriHighlights(filme.id)}>
+									<ImageBackground
+										id={filme.id}
+										style={styles.imagemFilme}
+										source={{
+											uri: `https://image.tmdb.org/t/p/original${filme.poster_path}`,
+										}}></ImageBackground>
+								</TouchableOpacity>
 							);
 						})}
 				</ScrollView>

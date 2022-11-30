@@ -1,14 +1,15 @@
 import { NavigationContainer } from '@react-navigation/native';
+import React from 'react';
 import { StatusBar } from 'react-native';
-import FavsProvider from './src/contexts/FavsContext';
-import Home from './src/pages/HomePage';
+import FavsProvider, { FavsContext } from './src/contexts/FavsContext';
+import Route from './src/Route';
 
 export default function App() {
 	return (
 		<NavigationContainer>
 			<FavsProvider>
 				<StatusBar style="auto" />
-				<Home />
+				<Route />
 			</FavsProvider>
 		</NavigationContainer>
 	);

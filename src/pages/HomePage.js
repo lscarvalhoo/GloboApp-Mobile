@@ -11,7 +11,6 @@ const Home = () => {
 			<ScrollView style={styles.filmeContainer}>
 				<CarrosselFilmes tipoLista={'Filmes'} />
 				<CarrosselFilmes tipoLista={'Series'} />
-				<CarrosselFilmes tipoLista={'Novelas'} />
 			</ScrollView>
 			<Footer />
 		</View>

@@ -1,8 +1,19 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { Entypo, AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const Footer = () => {
+	const navigate = useNavigation();
+
+	function abriHome() {
+		navigate.navigate('Home');
+	}
+
+	function abriMyList() {
+		navigate.navigate('MyList');
+	}
+
 	return (
 		<View style={styles.container}>
 			<TouchableOpacity style={styles.button}>
@@ -10,10 +21,13 @@ const Footer = () => {
 					name="home"
 					size={25}
 					color="white"
+					onPress={abriHome}
 				/>
 				<Text style={styles.textoButton}>Inicio</Text>
 			</TouchableOpacity>
-			<TouchableOpacity style={styles.button}>
+			<TouchableOpacity
+				style={styles.button}
+				onPress={abriMyList}>
 				<AntDesign
 					name="star"
 					size={24}

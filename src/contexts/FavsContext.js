@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import { api } from '../../API/tmdbApi';
 
@@ -9,58 +10,45 @@ const FavsProvider = ({ children }) => {
 
 	React.useEffect(() => {
 		async function iniciaFavoritos() {
-			const filmesId = window.localStorage.getItem('@favsId');
+			const filmes = await AsyncStorage.getItem('@favs');
 
-			if (filmesId !== null && filmesId !== undefined) {
-				const ids = filmesId.slice('+');
-
-				ids.forEach(async (id) => {
-					const resp = await api.get(`${id}`);
-
-					const data = resp.data.results;
-
-					favoritos.push(data);
-					setFavoritos(favoritos);
-				});
+			if (filmes !== null && filmes !== undefined) {
+				const filmesJson = await JSON.parse(filmes);
+				setFavoritos(filmesJson);
 			}
 		}
 
 		iniciaFavoritos();
-	});
+	}, []);
 
-	function adicionaFilmeFavorito(filme) {
+	async function adicionaFilmeFavorito(filme) {
 		if (!filme) return;
 		else favoritos.push(filme);
+
 		setFavoritos(favoritos);
 
-		let ids = '';
-
-		favoritos.forEach((fav) => {
-			ids += `${fav.id}+`;
-		});
-
-		window.localStorage.setItem('@favsId', ids);
+		await AsyncStorage.setItem('@favs', JSON.stringify(favoritos));
 	}
 
-	function removeFilmeFavorito(filme) {
+	async function removeFilmeFavorito(filme) {
 		if (!filme) return;
 		else {
 			const favoritosAtualizado = favoritos.filter((f) => f.id !== filme.id);
 			setFavoritos(favoritosAtualizado);
 		}
 
-		let ids = '';
-
-		favoritos.forEach((fav) => {
-			ids += `${fav.id}+`;
-		});
-
-		window.localStorage.setItem('@favsId', ids);
+		await AsyncStorage.setItem('@favs', JSON.stringify(favoritos));
 	}
 
 	return (
 		<FavsContext.Provider
-			value={(adicionaFilmeFavorito, removeFilmeFavorito, favoritos, loading, setLoading)}>
+			value={{
+				adicionaFilmeFavorito,
+				removeFilmeFavorito,
+				favoritos,
+				loading,
+				setLoading,
+			}}>
 			{children}
 		</FavsContext.Provider>
 	);

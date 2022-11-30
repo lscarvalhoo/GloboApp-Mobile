@@ -30,9 +30,10 @@ const styles = StyleSheet.create({
 	},
 	textoMinhaLista: {
 		flex: 1,
-		alignItems: 'flex-start',
-		fontSize: 14,
+		fontSize: 24,
 		fontWeight: '600',
 		color: 'white',
+		marginTop: 44,
+		marginRight: 180,
 	},
 });
